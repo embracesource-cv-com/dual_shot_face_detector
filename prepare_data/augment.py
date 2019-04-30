@@ -7,11 +7,11 @@
 """
 
 import random
-from PIL import Image
 import cv2
 import numpy as np
 from dual_conf import current_config as conf
-
+from PIL import Image
+Image.MAX_IMAGE_PIXELS = 100000000000
 
 def adjust_gt(bboxes, width, height, resized_width, resized_height):
     """ get the GT box coordinates, and resize to account for image resizing

@@ -15,9 +15,9 @@ class Config(object):
     net_in_size = 640
     num_anchor = 34125
     num_image = 12876
-    batch_size = 2
-    epochs = 100
-    steps_per_epoch = 20
+    batch_size = 4
+    epochs = 10000
+    steps_per_epoch = 30 # 约3000/epoch
     gpu_index = "1"
     num_train_anchor = 20
     iou_thread = 0.4
@@ -25,6 +25,7 @@ class Config(object):
     train_ratio = 0.6
     lr = 0.001
     patience = 10
+    weight_decay = 0.00001
 
     continue_training = False
     weights_to_transfer = '/opt/pretrained_model/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'

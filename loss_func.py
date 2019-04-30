@@ -63,5 +63,4 @@ def progressive_anchor_loss(e_reg_targets, e_ind_trains, o_reg_targets, o_ind_tr
     ss_regr_loss = regr_loss(e_reg_targets, ss_regr, e_ind_trains)
 
     total_loss = fs_cls_loss + ss_cls_loss + fs_regr_loss + ss_regr_loss
-    print(fs_cls_loss, total_loss)
     return total_loss
