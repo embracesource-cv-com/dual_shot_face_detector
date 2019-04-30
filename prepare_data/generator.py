@@ -19,21 +19,29 @@ o_scale = (e_scale / 2).astype('int')
 ratio = 1 / 1.5
 
 
+def image_reader(test_set):
+    index = np.random.randint(0, conf.num_image, 1)[0]
+
+    image = test_set.pull_image(index)
+    _, gts = test_set.pull_anno(index)
+    gts = np.array(gts)
+    if len(gts) == 0:
+        image_reader(test_set)
+    return image, gts
+
+
 def gen_data(batch_size):
     test_set = WIDERFaceDetection(conf.data_path, 'train', None, WIDERFaceAnnotationTransform())
     e_anchors = init_anchors(layer_strides, map_size, ratio, e_scale)
     o_anchors = init_anchors(layer_strides, map_size, ratio, o_scale)
     while True:
-        index_list = np.random.randint(0, len(test_set), batch_size)
         batch_img = []
         batch_gt = []
         e_reg_targets, e_ind_trains = [], []
         o_reg_targets, o_ind_trains = [], []
-        for index in index_list:
+        for i in range(batch_size):
             # print('batch_index:', index)
-            image = test_set.pull_image(index)
-            _, gts = test_set.pull_anno(index)
-            gts = np.array(gts)
+            image, gts = image_reader(test_set)
             sub_img, gt_in_crop = aug_single_image(image, gts)
             # print('num_gt:', len(gt_in_crop))
             e_reg_target, e_ind_train = cal_target(gt_in_crop, e_anchors, iou_thread=conf.iou_thread,
