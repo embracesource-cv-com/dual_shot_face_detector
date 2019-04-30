@@ -1,0 +1,35 @@
+# -*- coding:utf-8 _*-
+"""
+@author: danna.li
+@date: 2019/4/25 
+@file: dual_conf.py
+@description:
+"""
+import numpy as np
+
+
+class Config(object):
+    data_path = '/home/dataset/face_recognize/face_detect'
+    output_dir = '/home/dataset/face_recognize/face_detect'
+    num_class = 2
+    net_in_size = 640
+    num_anchor = 34125
+    num_image = 12876
+    batch_size = 2
+    epochs = 100
+    steps_per_epoch = 20
+    gpu_index = "1"
+    num_train_anchor = 20
+    iou_thread = 0.4
+
+    train_ratio = 0.6
+    lr = 0.001
+    patience = 10
+
+    continue_training = False
+    weights_to_transfer = '/opt/pretrained_model/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
+    use_tradition_feature = False
+
+
+# 当前生效配置
+current_config = Config()
