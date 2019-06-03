@@ -5,7 +5,6 @@
 @file: dual_conf.py
 @description:
 """
-import numpy as np
 
 
 class Config(object):
