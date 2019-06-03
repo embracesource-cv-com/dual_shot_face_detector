@@ -21,15 +21,10 @@ class Config(object):
     gpu_index = "1"
     num_train_anchor = 20
     iou_thread = 0.4
-
-    train_ratio = 0.6
     lr = 0.001
-    patience = 10
-    weight_decay = 0.00001
 
     continue_training = False
     weights_to_transfer = '/opt/pretrained_model/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
-    use_tradition_feature = False
 
 
 # 当前生效配置
