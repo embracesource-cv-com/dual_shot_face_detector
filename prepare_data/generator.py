@@ -9,7 +9,7 @@
 import numpy as np
 from dual_conf import current_config as conf
 from prepare_data.widerface import WIDERFaceDetection, WIDERFaceAnnotationTransform
-from prepare_data.augment import aug_single_image
+from prepare_data.augment import Augmentation
 from prepare_data.model_target import init_anchors, cal_target
 
 layer_strides = np.array([4, 8, 16, 32, 64, 128])
@@ -21,7 +21,7 @@ ratio = 1 / 1.5
 
 def image_reader(test_set):
     index = np.random.randint(0, conf.num_image, 1)[0]
-
+    # print('batch_index:', index)
     image = test_set.pull_image(index)
     _, gts = test_set.pull_anno(index)
     gts = np.array(gts)
@@ -40,9 +40,11 @@ def gen_data(batch_size):
         e_reg_targets, e_ind_trains = [], []
         o_reg_targets, o_ind_trains = [], []
         for i in range(batch_size):
-            # print('batch_index:', index)
             image, gts = image_reader(test_set)
-            sub_img, gt_in_crop = aug_single_image(image, gts)
+            labels = np.full(gts.shape[0],0)
+            # print('gts:',gts, labels)
+            to_aug = Augmentation(conf.net_in_size)
+            sub_img, gt_in_crop, _ = to_aug(image, gts, labels)
             # print('num_gt:', len(gt_in_crop))
             e_reg_target, e_ind_train = cal_target(gt_in_crop, e_anchors, iou_thread=conf.iou_thread,
                                                    train_anchors=conf.num_train_anchor)

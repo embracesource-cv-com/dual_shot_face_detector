@@ -421,7 +421,8 @@ class RandomBaiduCrop(object):
         # resize original image and transfer the gt accordingly
         height, width, _ = image.shape
         box_area = (boxes[:, 2] - boxes[:, 0] + 1) * (boxes[:, 3] - boxes[:, 1] + 1)
-        rand_idx = random.randint(0, len(box_area) - 1)
+        # print(boxes,box_area)
+        rand_idx = random.randint(len(box_area))
         side_len = box_area[rand_idx] ** 0.5
 
         anchors = np.array([16, 32, 64, 128, 256, 512])
@@ -430,11 +431,11 @@ class RandomBaiduCrop(object):
         target_anchor = random.choice(anchors[0:min(anchor_idx + 1, 5) + 1])
 
         ratio = float(target_anchor) / side_len
-        print('ratio:', ratio)
+        # print('ratio:', ratio)
         ratio = ratio * (2 ** random.uniform(-1, 1))
         if int(height * ratio * width * ratio) > self.maxSize * self.maxSize:
             ratio = (self.maxSize * self.maxSize / (height * width)) ** 0.5
-        print('ratio:', ratio)
+        # print('ratio:', ratio)
 
         interp_methods = [cv2.INTER_LINEAR, cv2.INTER_CUBIC, cv2.INTER_AREA, cv2.INTER_NEAREST, cv2.INTER_LANCZOS4]
         interp_method = random.choice(interp_methods)
@@ -460,7 +461,7 @@ class RandomBaiduCrop(object):
             sample_boxes.append(rect)
 
         # randomly select a crop box and perform crop, keep gts with centers lying inside the cropped box
-        choice_idx = random.randint(0, len(sample_boxes) - 1)
+        choice_idx = random.randint(len(sample_boxes))
         choice_box = sample_boxes[choice_idx]
 
         pil_img = Image.fromarray(image.astype(np.uint8))
@@ -551,7 +552,7 @@ def aug_test():
 
     to_aug = Augmentation(size)
     img, boxes, labels = to_aug(img, boxes, labels)
-    print(img.shape, np.sum(img), boxes, labels)
+    print(img.shape, np.sum(img), np.max(img), np.min(img), boxes, labels)
     plot_anchor(img, boxes)
 
 
