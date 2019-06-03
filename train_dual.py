@@ -18,6 +18,11 @@ import os
 os.environ["CUDA_VISIBLE_DEVICES"] = conf.gpu_index
 
 log = TensorBoard(log_dir=conf.output_dir)
+lr_decay = ReduceLROnPlateau(monitor='val_loss', patience=5, factor=0.95)
+ckpt_saver = ModelCheckpoint(filepath=os.path.join(conf.output_dir, 'weights.hdf5'), verbose=1,
+                             save_best_only=True, save_weights_only=True)
+callback = [log, lr_decay, ckpt_saver]
+
 gen = gen_data(conf.batch_size)
 print([i.shape for i in next(gen)[0]])
 num_anchor = conf.num_train_anchor
@@ -40,4 +45,4 @@ model.fit_generator(generator=gen,
                     validation_steps=2,
                     steps_per_epoch=conf.steps_per_epoch,
                     epochs=conf.epochs,
-                    callbacks=[log])
+                    callbacks=callback)
