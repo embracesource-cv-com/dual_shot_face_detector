@@ -44,25 +44,6 @@ def jaccard_numpy(box_a, box_b):
     return inter / union  # [A,B]
 
 
-def adjust_gt(bboxes, width, height, resized_width, resized_height):
-    """ get the GT box coordinates, and resize to account for image resizing
-    :param bboxes: 2-d array [[x1,y1,x2,y2]]
-    :param width:
-    :param height:
-    :param resized_width:
-    :param resized_height:
-    :return:
-    """
-    num_bboxes = bboxes.shape[0]
-    gta = np.zeros((num_bboxes, 4), dtype='int')
-    for bbox_num, bbox in enumerate(bboxes):
-        gta[bbox_num, 0] = bbox[0] * (resized_width / float(width))
-        gta[bbox_num, 1] = bbox[1] * (resized_width / float(width))
-        gta[bbox_num, 2] = bbox[2] * (resized_height / float(height))
-        gta[bbox_num, 3] = bbox[3] * (resized_height / float(height))
-    return gta
-
-
 class Compose(object):
     """Composes several augmentations together.
     Args:
@@ -128,10 +109,6 @@ class Resize(object):
         # print (image.shape[0]/self.size)
         image = cv2.resize(image, (self.size,
                                    self.size))
-        # height, width, _ = image.shape
-        # print(boxes)
-        # boxes = adjust_gt(boxes, width, height, self.size, self.size)
-        # print(boxes)
         return image, boxes, labels
 
 
