@@ -2,7 +2,7 @@
 """
 @author: danna.li
 @date: 2019/4/24 
-@file: vgg_ssd.py
+@file: vgg_ssd_torch.py
 @description:
 """
 import keras.layers as KL
@@ -68,23 +68,18 @@ def detector(conv3_3, conv4_3, conv5_3, conv_fc7, conv6_2, conv7_2, name):
     return cls, regr
 
 
-def group_channel_conv(x_in, pace, name):
-    sub1 = KL.Lambda(lambda z: z[:, :, :, 0:pace])(x_in)
-    sub1 = KL.Conv2D(pace, (3, 3), dilation_rate=(3, 3), padding='same', name='dilated_1_1' + name)(sub1)
-    sub2 = KL.Lambda(lambda z: z[:, :, :, pace:(2 * pace)])(x_in)
-    sub2 = KL.Conv2D(pace, (3, 3), dilation_rate=(3, 3), padding='same', name='dilated_2_1' + name)(sub2)
-    sub2 = KL.Conv2D(pace, (3, 3), dilation_rate=(3, 3), padding='same', name='dilated_2_2' + name)(sub2)
-    sub3 = KL.Lambda(lambda z: z[:, :, :, (2 * pace):(3 * pace)])(x_in)
-    sub3 = KL.Conv2D(pace, (3, 3), dilation_rate=(3, 3), padding='same', name='dilated_3_1' + name)(sub3)
-    sub3 = KL.Conv2D(pace, (3, 3), dilation_rate=(3, 3), padding='same', name='dilated_3_2' + name)(sub3)
-    sub3 = KL.Conv2D(pace, (3, 3), dilation_rate=(3, 3), padding='same', name='dilated_3_3' + name)(sub3)
-    sub4 = KL.Lambda(lambda z: z[:, :, :, (3 * pace):(4 * pace)])(x_in)
-    sub4 = KL.Conv2D(pace, (3, 3), dilation_rate=(3, 3), padding='same', name='dilated_4_1' + name)(sub4)
-    sub4 = KL.Conv2D(pace, (3, 3), dilation_rate=(3, 3), padding='same', name='dilated_4_2' + name)(sub4)
-    sub4 = KL.Conv2D(pace, (3, 3), dilation_rate=(3, 3), padding='same', name='dilated_4_3' + name)(sub4)
-    sub4 = KL.Conv2D(pace, (3, 3), dilation_rate=(3, 3), padding='same', name='dilated_4_4' + name)(sub4)
-    x = KL.Concatenate()([sub1, sub2, sub3, sub4])
-    return x
+def group_channel_conv(x_in, name):
+    x1_1 = KL.Conv2D(256, (3, 3), dilation_rate=(1, 1), activation='relu', padding='same', name='dilated_1_1' + name)(
+        x_in)
+    x2_1 = KL.Conv2D(256, (3, 3), dilation_rate=(2, 2), activation='relu', padding='same', name='dilated_2_1' + name)(
+        x_in)
+    x2_2 = KL.Conv2D(128, (3, 3), dilation_rate=(1, 1), activation='relu', padding='same', name='dilated_2_2' + name)(
+        x2_1)
+    x3_1 = KL.Conv2D(128, (3, 3), dilation_rate=(2, 2), activation='relu', padding='same', name='dilated_3_1' + name)(
+        x2_1)
+    x3_2 = KL.Conv2D(128, (3, 3), dilation_rate=(1, 1), activation='relu', padding='same', name='dilated_3_2' + name)(
+        x3_1)
+    return KL.Concatenate()([x1_1, x2_2, x3_2])
 
 
 def feature_enhance(x_current, x_deeper, channel, name):
@@ -92,7 +87,7 @@ def feature_enhance(x_current, x_deeper, channel, name):
     x_deeper = KL.Conv2D(channel, (1, 1), activation='relu', padding='same', name='deeper_norm_' + name)(x_deeper)
     x_deeper = KL.UpSampling2D(size=(2, 2))(x_deeper)
     x_combine = KL.Multiply(name='element_dot_' + name)([x_current, x_deeper])
-    x = group_channel_conv(x_combine, int(channel / 4), name)
+    x = group_channel_conv(x_combine, name)
     return x
 
 
@@ -120,13 +115,15 @@ def whole_net(x_in, y_e_reg, y_e_ind, y_o_reg, y_o_ind):
     return pal
 
 
-# if __name__ == '__main__':
-#     net_in = KL.Input([640, 640, 3], name='image_array')
-#     y_e_reg = KL.Input((34125, 5), name='e_reg')
-#     y_e_ind = KL.Input((34125, 2), name='e_train_ind')
-#     y_o_reg = KL.Input((34125, 5), name='o_reg')
-#     y_o_ind = KL.Input((34125, 2), name='o_train_reg')
-#     pal = whole_net(net_in, y_e_reg, y_e_ind, y_o_reg, y_o_ind)
-#     model = Model(inputs=[net_in, y_e_reg, y_e_ind, y_o_reg, y_o_ind], outputs=pal)
-#     # model.add_loss()
-#     model.summary()
+def net_test():
+    net_in = KL.Input([640, 640, 3], name='image_array')
+    y_e_reg = KL.Input((34125, 5), name='e_reg')
+    y_e_ind = KL.Input((34125, 2), name='e_train_ind')
+    y_o_reg = KL.Input((34125, 5), name='o_reg')
+    y_o_ind = KL.Input((34125, 2), name='o_train_reg')
+    pal = whole_net(net_in, y_e_reg, y_e_ind, y_o_reg, y_o_ind)
+    model = Model(inputs=[net_in, y_e_reg, y_e_ind, y_o_reg, y_o_ind], outputs=pal)
+    model.summary()
+
+if __name__ == '__main__':
+    net_test()
