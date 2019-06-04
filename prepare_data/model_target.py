@@ -133,6 +133,41 @@ def regress_target(anchors, gt_boxes):
     return target
 
 
+def apply_regress(deltas, anchors):
+    """
+    应用回归目标到边框
+    :param deltas: 回归目标[N,(dy, dx, dh, dw)]
+    :param anchors: anchor boxes[N,(y1,x1,y2,x2)]
+    :return:
+    """
+    # 高度和宽度
+    h = anchors[:, 2] - anchors[:, 0]
+    w = anchors[:, 3] - anchors[:, 1]
+
+    # 中心点坐标
+    cy = (anchors[:, 2] + anchors[:, 0]) * 0.5
+    cx = (anchors[:, 3] + anchors[:, 1]) * 0.5
+
+    # 回归系数
+    deltas *= np.array(([0.1, 0.1, 0.2, 0.2]))
+    dy, dx, dh, dw = deltas[:, 0], deltas[:, 1], deltas[:, 2], deltas[:, 3]
+
+    # 中心坐标回归
+    cy += dy * h
+    cx += dx * w
+    # 高度和宽度回归
+    h *= np.exp(dh)
+    w *= np.exp(dw)
+
+    # 转为y1,x1,y2,x2
+    y1 = cy - h * 0.5
+    x1 = cx - w * 0.5
+    y2 = cy + h * 0.5
+    x2 = cx + w * 0.5
+
+    return np.stack([y1, x1, y2, x2], axis=1)
+
+
 def cal_target(gts=None, anchors=None, iou_thread=0.4, train_anchors=10):
     # calculate iou matrix
     iou = iou_np(gts, anchors)
