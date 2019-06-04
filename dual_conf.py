@@ -17,7 +17,7 @@ class Config(object):
     batch_size = 4
     epochs = 100
     steps_per_epoch = 3000  # 约3000/epoch
-    gpu_index = "1"
+    gpu_index = "0"
     num_train_anchor = 20
     iou_thread = 0.4
 
