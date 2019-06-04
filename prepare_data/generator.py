@@ -25,9 +25,19 @@ def image_reader(test_set):
     image = test_set.pull_image(index)
     _, gts = test_set.pull_anno(index)
     gts = np.array(gts)
+    labels = np.full(gts.shape[0], 0)
     if len(gts) == 0:
         image_reader(test_set)
-    return image, gts
+    return image, gts, labels
+
+
+def augment(image, gts, labels, test_set):
+    to_aug = Augmentation(conf.net_in_size)
+    sub_img, gt_in_crop, sparse_label = to_aug(image, gts, labels)
+    if len(gt_in_crop) == 0:
+        image, gts, labels = image_reader(test_set)
+        augment(image, gts, labels, test_set)
+    return sub_img, gt_in_crop, sparse_label
 
 
 def gen_data(batch_size):
@@ -40,11 +50,8 @@ def gen_data(batch_size):
         e_reg_targets, e_ind_trains = [], []
         o_reg_targets, o_ind_trains = [], []
         for i in range(batch_size):
-            image, gts = image_reader(test_set)
-            labels = np.full(gts.shape[0],0)
-            # print('gts:',gts, labels)
-            to_aug = Augmentation(conf.net_in_size)
-            sub_img, gt_in_crop, _ = to_aug(image, gts, labels)
+            image, gts, labels = image_reader(test_set)
+            sub_img, gt_in_crop, sparse_label = augment(image, gts, labels, test_set)
             # print('num_gt:', len(gt_in_crop))
             e_reg_target, e_ind_train = cal_target(gt_in_crop, e_anchors, iou_thread=conf.iou_thread,
                                                    train_anchors=conf.num_train_anchor)
