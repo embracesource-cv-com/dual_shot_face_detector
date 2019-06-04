@@ -16,8 +16,8 @@ class Config(object):
     num_image = 12876
     batch_size = 4
     epochs = 100
-    steps_per_epoch = 3000  # 约3000/epoch
-    gpu_index = "0"
+    steps_per_epoch = 30  # 约3000/epoch
+    gpu_index = "1"
     num_train_anchor = 20
     iou_thread = 0.4
 

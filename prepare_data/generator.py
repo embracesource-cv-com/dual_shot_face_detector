@@ -40,8 +40,8 @@ def augment(image, gts, labels, test_set):
     return sub_img, gt_in_crop, sparse_label
 
 
-def gen_data(batch_size):
-    test_set = WIDERFaceDetection(conf.data_path, 'train', None, WIDERFaceAnnotationTransform())
+def gen_data(batch_size, phase='train'):
+    test_set = WIDERFaceDetection(conf.data_path, phase, None, WIDERFaceAnnotationTransform())
     e_anchors = init_anchors(layer_strides, map_size, ratio, e_scale)
     o_anchors = init_anchors(layer_strides, map_size, ratio, o_scale)
     while True:
@@ -67,3 +67,18 @@ def gen_data(batch_size):
         o_reg_targets, o_ind_trains = [np.array(i) for i in [o_reg_targets, o_ind_trains]]
         batch_img = np.array(batch_img)
         yield [batch_img, e_reg_targets, e_ind_trains, o_reg_targets, o_ind_trains], []
+
+
+def gen_test(batch_size, phase='train'):
+    test_set = WIDERFaceDetection(conf.data_path, phase, None, WIDERFaceAnnotationTransform())
+    while True:
+        batch_img = []
+        batch_gt = []
+        for i in range(batch_size):
+            image, gts, labels = image_reader(test_set)
+            sub_img, gt_in_crop, sparse_label = augment(image, gts, labels, test_set)
+            batch_img.append(sub_img)
+            batch_gt.append(gt_in_crop)
+        batch_img = np.array(batch_img)
+        batch_gt = np.array(batch_gt)
+        yield batch_img, batch_gt
