@@ -111,7 +111,7 @@ def whole_net(x_in, y_e_reg, y_e_ind, y_o_reg, y_o_ind):
     ss_cls, ss_regr = detector(conv3_3_ef, conv4_3_ef, conv5_3_ef, conv_fc7_ef, conv6_2_ef, conv7_2_ef, 'ss')
     pal = keras.layers.Lambda(lambda x: progressive_anchor_loss(*x), name='PAL')([y_e_reg, y_e_ind, y_o_reg, y_o_ind,
                                                                                   fs_cls, fs_regr, ss_cls, ss_regr])
-    return pal
+    return fs_cls, fs_regr, ss_cls, ss_regr, pal
 
 
 def net_test():
@@ -120,11 +120,11 @@ def net_test():
     y_e_ind = KL.Input((34125, 2), name='e_train_ind')
     y_o_reg = KL.Input((34125, 5), name='o_reg')
     y_o_ind = KL.Input((34125, 2), name='o_train_reg')
-    pal = whole_net(net_in, y_e_reg, y_e_ind, y_o_reg, y_o_ind)
-    model = Model(inputs=[net_in, y_e_reg, y_e_ind, y_o_reg, y_o_ind], outputs=pal)
+    fs_cls, fs_regr, ss_cls, ss_regr, pal = whole_net(net_in, y_e_reg, y_e_ind, y_o_reg, y_o_ind)
+    model = Model(inputs=[net_in, y_e_reg, y_e_ind, y_o_reg, y_o_ind], outputs=[fs_cls, fs_regr, ss_cls, ss_regr, pal])
     model.summary()
-    from keras.utils import plot_model
-    plot_model(model, to_file='model.png', show_shapes=True, show_layer_names=False)
+    # from keras.utils import plot_model
+    # plot_model(model, to_file='model.png', show_shapes=True, show_layer_names=False)
 
 
 if __name__ == '__main__':
