@@ -8,7 +8,7 @@
 
 from prepare_data.generator import gen_data
 from dual_conf import current_config as conf
-from vgg_ssd import whole_net
+from vgg_ssd import train_net
 import keras
 from keras import Model, Input
 from keras.callbacks import TensorBoard, ReduceLROnPlateau, ModelCheckpoint, EarlyStopping
@@ -17,13 +17,13 @@ import os
 
 os.environ["CUDA_VISIBLE_DEVICES"] = conf.gpu_index
 
-log = TensorBoard(log_dir=conf.output_dir,)
+log = TensorBoard(log_dir=conf.output_dir, )
 lr_decay = ReduceLROnPlateau(monitor='loss', patience=5, factor=0.95)
-ckpt_saver = ModelCheckpoint(monitor='loss', filepath=os.path.join(conf.output_dir, 'weights.hdf5'), verbose=1,
+ckpt_saver = ModelCheckpoint(monitor='loss', filepath=os.path.join(conf.output_dir, 'weights.h5'), verbose=1,
                              save_best_only=True, save_weights_only=True)
 callback = [log, lr_decay, ckpt_saver]
 
-gen = gen_data(conf.batch_size)
+gen = gen_data(conf.batch_size, 'train')
 print([i.shape for i in next(gen)[0]])
 num_anchor = conf.num_train_anchor
 x_in = Input([conf.net_in_size, conf.net_in_size, 3], name='image_array')
@@ -31,7 +31,7 @@ y_e_reg = Input((num_anchor, 5), name='e_reg')
 y_e_ind = Input((num_anchor, 2), name='e_train_ind')
 y_o_reg = Input((num_anchor, 5), name='o_reg')
 y_o_ind = Input((num_anchor, 2), name='o_train_ind')
-pal = whole_net(x_in, y_e_reg, y_e_ind, y_o_reg, y_o_ind)
+pal = train_net(x_in, y_e_reg, y_e_ind, y_o_reg, y_o_ind)
 model = Model(inputs=[x_in, y_e_reg, y_e_ind, y_o_reg, y_o_ind], outputs=pal)
 
 loss_name = 'PAL'
