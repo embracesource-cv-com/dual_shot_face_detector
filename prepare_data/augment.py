@@ -300,9 +300,10 @@ class RandomSSDCrop(object):
         self.sample_options = (
             # using entire original input image
             None,
-            # sample a patch s.t. MIN jaccard w/ obj in .1,.3,.4,.7,.9
+            # sample a patch s.t. MIN jaccard w/ obj in .1,.3,.5,.7,.9
             (0.1, None),
             (0.3, None),
+            (0.5, None),
             (0.7, None),
             (0.9, None),
             # randomly sample a patch
@@ -434,22 +435,18 @@ class RandomBaiduCrop(object):
         gt_x1, gt_y1, gt_x2, gt_y2 = boxes[rand_idx, :]
         crop_w = crop_h = self.size
 
-        for _ in range(50):
-            if crop_w < max(height, width):
-                crop_x1 = random.uniform(gt_x2 - crop_w, gt_x1)
-                crop_y1 = random.uniform(gt_y2 - crop_h, gt_y1)
-            else:
-                crop_x1 = random.uniform(width - crop_w, 0)
-                crop_y1 = random.uniform(height - crop_h, 0)
-            crop_x1 = math.floor(crop_x1)
-            crop_y1 = math.floor(crop_y1)
-            rect = np.array([int(crop_x1), int(crop_y1), int(crop_x1 + crop_w), int(crop_y1 + crop_h)])
-            sample_boxes.append(rect)
+        # randomly select a crop box
+        if crop_w < max(height, width):
+            crop_x1 = random.uniform(gt_x2 - crop_w, gt_x1)
+            crop_y1 = random.uniform(gt_y2 - crop_h, gt_y1)
+        else:
+            crop_x1 = random.uniform(width - crop_w, 0)
+            crop_y1 = random.uniform(height - crop_h, 0)
+        crop_x1 = math.floor(crop_x1)
+        crop_y1 = math.floor(crop_y1)
+        choice_box = np.array([int(crop_x1), int(crop_y1), int(crop_x1 + crop_w), int(crop_y1 + crop_h)])
 
-        # randomly select a crop box and perform crop, keep gts with centers lying inside the cropped box
-        choice_idx = random.randint(len(sample_boxes))
-        choice_box = sample_boxes[choice_idx]
-
+        # perform crop, keep gts with centers lying inside the cropped box
         pil_img = Image.fromarray(image.astype(np.uint8))
         current_image = np.array(pil_img.crop([i for i in choice_box]))
 
