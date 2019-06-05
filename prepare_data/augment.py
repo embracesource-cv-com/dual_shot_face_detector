@@ -394,7 +394,6 @@ class RandomSSDCrop(object):
 
 class RandomBaiduCrop(object):
     def __init__(self, size):
-        self.mean = np.array([104, 117, 123], dtype=np.float32)
         self.maxSize = 12000  # max size
         self.size = size
 
@@ -533,6 +532,7 @@ def aug_test():
 
     path = 'C:\\Users\\lidan\\OneDrive\\A_markdown\\public\\face\\code\\201904_dual_shot\\img\\000372.jpg'
     img = load_image(path)
+    print('original image shape:', img.shape)
     size = 640
     labels = np.array([0, 0])
     boxes = np.array([[78., 22., 253., 304.], [269., 19., 360., 296.]])
