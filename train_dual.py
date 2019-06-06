@@ -8,7 +8,7 @@
 
 from prepare_data.generator import gen_data
 from dual_conf import current_config as conf
-from vgg_ssd import train_net
+from net.dual_shot import train_net
 import keras
 from keras import Model, Input
 from keras.callbacks import TensorBoard, ReduceLROnPlateau, ModelCheckpoint, EarlyStopping
