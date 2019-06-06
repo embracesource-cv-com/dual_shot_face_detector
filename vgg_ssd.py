@@ -48,21 +48,21 @@ def extend_vgg(x_in):
     return conv3_3, conv4_3, conv5_3, conv_fc7, conv6_2, conv7_2
 
 
-def classifier(x, num_anchor, name):
+def classifier(x, name):
     cls = KL.Conv2D(conf.num_class, (1, 1), activation='softmax', padding='same', name='cls_' + name)(x)
     regr = KL.Conv2D(4, (1, 1), activation='linear', padding='same', name='regr_' + name)(x)
-    cls = KL.Reshape((num_anchor, conf.num_class), name='reshape_cls_' + name)(cls)
-    regr = KL.Reshape((num_anchor, 4), name='reshape_regr_' + name)(regr)
+    cls = KL.Reshape((-1, conf.num_class), name='reshape_cls_' + name)(cls)
+    regr = KL.Reshape((-1, 4), name='reshape_regr_' + name)(regr)
     return cls, regr
 
 
 def detector(conv3_3, conv4_3, conv5_3, conv_fc7, conv6_2, conv7_2, name):
-    cls1, regr1 = classifier(conv3_3, 25600, 'conv3_3' + name)
-    cls2, regr2 = classifier(conv4_3, 6400, 'conv4_3' + name)
-    cls3, regr3 = classifier(conv5_3, 1600, 'conv5_3' + name)
-    cls4, regr4 = classifier(conv_fc7, 400, 'fc_7' + name)
-    cls5, regr5 = classifier(conv6_2, 100, 'conv6_2' + name)
-    cls6, regr6 = classifier(conv7_2, 25, 'conv7_2' + name)
+    cls1, regr1 = classifier(conv3_3, 'conv3_3' + name)
+    cls2, regr2 = classifier(conv4_3, 'conv4_3' + name)
+    cls3, regr3 = classifier(conv5_3, 'conv5_3' + name)
+    cls4, regr4 = classifier(conv_fc7, 'fc_7' + name)
+    cls5, regr5 = classifier(conv6_2, 'conv6_2' + name)
+    cls6, regr6 = classifier(conv7_2, 'conv7_2' + name)
     cls = KL.Concatenate(axis=1, name='cls_concat_' + name)([cls1, cls2, cls3, cls4, cls5, cls6])
     regr = KL.Concatenate(axis=1, name='regr_concat_' + name)([regr1, regr2, regr3, regr4, regr5, regr6])
     return cls, regr
