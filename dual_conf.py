@@ -15,17 +15,18 @@ class Config(object):
     num_anchor = 34125
     num_image = 12876
     batch_size = 4
-    epochs = 100
-    steps_per_epoch = 30  # 约3000/epoch
+    epochs = 20
+    steps_per_epoch = 3000  # 约3000/epoch
     gpu_index = "1"
-    num_train_anchor = 20
+    num_train_anchor = 128
     iou_thread = 0.4
 
     lr = 0.001
     weight_decay = 0.00001
+    base_net='resnet50'  # can be 'resnet50','resnet101'
 
-    continue_training = False
-    weights_to_transfer = '/opt/pretrained_model/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
+    continue_training = True
+    weights_to_transfer = '/home/pretrained_model/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
 
 
 # 当前生效配置

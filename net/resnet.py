@@ -155,7 +155,7 @@ def conv_block(input_tensor, kernel_size, filters, stage, block,
     return x
 
 
-def extend_resnet(input_image, architecture, train_bn=True):
+def extend_resnet(input_image, architecture="resnet101", train_bn=True):
     assert architecture in ["resnet50", "resnet101"]
     # Stage 1
     x = KL.ZeroPadding2D((3, 3))(input_image)
@@ -188,29 +188,30 @@ def extend_resnet(input_image, architecture, train_bn=True):
     conv_fc7 = x = identity_block(x, 3, [512, 512, 2048], stage=5, block='c', train_bn=train_bn)
 
     # Stage 6(Extended)
-    x = KL.Conv2D(512, (1, 1),name='stage6_conv1',padding='same',strides=1)(x)
-    x = BatchNorm(name='stage6_bn1',)(x, training=train_bn)
+    x = KL.Conv2D(512, (1, 1), name='stage6_conv1', padding='same', strides=1)(x)
+    x = BatchNorm(name='stage6_bn1', )(x, training=train_bn)
     x = KL.Activation('relu')(x)
-    x = KL.Conv2D(512, (3, 3),name='stage6_conv2',padding='same',strides=2)(x)
-    x = BatchNorm(name='stage6_bn2',)(x, training=train_bn)
+    x = KL.Conv2D(512, (3, 3), name='stage6_conv2', padding='same', strides=2)(x)
+    x = BatchNorm(name='stage6_bn2', )(x, training=train_bn)
     conv6_2 = x = KL.Activation('relu')(x)
 
     # Stage 7(Extended)
-    x = KL.Conv2D(128, (1, 1),name='stage7_conv1',padding='same',strides=1)(x)
-    x = BatchNorm(name='stage7_bn1',)(x, training=train_bn)
+    x = KL.Conv2D(128, (1, 1), name='stage7_conv1', padding='same', strides=1)(x)
+    x = BatchNorm(name='stage7_bn1', )(x, training=train_bn)
     x = KL.Activation('relu')(x)
-    x = KL.Conv2D(256, (3, 3),name='stage7_conv2',padding='same',strides=2)(x)
-    x = BatchNorm(name='stage7_bn2',)(x, training=train_bn)
+    x = KL.Conv2D(256, (3, 3), name='stage7_conv2', padding='same', strides=2)(x)
+    x = BatchNorm(name='stage7_bn2', )(x, training=train_bn)
     conv7_2 = x = KL.Activation('relu')(x)
 
-    return  conv3_3, conv4_3, conv5_3, conv_fc7, conv6_2, conv7_2
+    return conv3_3, conv4_3, conv5_3, conv_fc7, conv6_2, conv7_2
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     from keras import Model
+
     input_shape = (640, 640, 3)
     nn_inputs = KL.Input(input_shape)
-    conv3_3, conv4_3, conv5_3, conv_fc7, conv6_2, conv7_2 = extend_resnet(nn_inputs, 'resnet101', train_bn=True)
+    conv3_3, conv4_3, conv5_3, conv_fc7, conv6_2, conv7_2 = extend_resnet(nn_inputs, 'resnet50', train_bn=True)
     print(conv3_3, conv4_3, conv5_3, conv_fc7, conv6_2, conv7_2)
     model = Model(inputs=nn_inputs, outputs=[conv3_3, conv4_3, conv5_3, conv_fc7, conv6_2, conv7_2])
     model.summary()

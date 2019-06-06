@@ -13,6 +13,9 @@ from loss_func import progressive_anchor_loss
 from net.vgg import extend_vgg
 from net.resnet import extend_resnet
 
+base_net = conf.base_net
+print('using:', base_net, 'as the base model')
+
 
 def classifier(x, name):
     cls = KL.Conv2D(conf.num_class, (1, 1), activation='softmax', padding='same', name='cls_' + name)(x)
@@ -68,7 +71,7 @@ def feature_enhance_module(conv3_3, conv4_3, conv5_3, conv_fc7, conv6_2, conv7_2
 
 
 def train_net(x_in, y_e_reg, y_e_ind, y_o_reg, y_o_ind):
-    conv3_3, conv4_3, conv5_3, conv_fc7, conv6_2, conv7_2 = extend_resnet(x_in)
+    conv3_3, conv4_3, conv5_3, conv_fc7, conv6_2, conv7_2 = extend_resnet(x_in, base_net)
     # first shot
     fs_cls, fs_regr = detector(conv3_3, conv4_3, conv5_3, conv_fc7, conv6_2, conv7_2, 'fs')
     # second shot
@@ -81,7 +84,7 @@ def train_net(x_in, y_e_reg, y_e_ind, y_o_reg, y_o_ind):
 
 
 def test_net(x_in):
-    conv3_3, conv4_3, conv5_3, conv_fc7, conv6_2, conv7_2 = extend_resnet(x_in)
+    conv3_3, conv4_3, conv5_3, conv_fc7, conv6_2, conv7_2 = extend_resnet(x_in, base_net)
     # second shot
     conv3_3_ef, conv4_3_ef, conv5_3_ef, conv_fc7_ef, conv6_2_ef, conv7_2_ef \
         = feature_enhance_module(conv3_3, conv4_3, conv5_3, conv_fc7, conv6_2, conv7_2)
