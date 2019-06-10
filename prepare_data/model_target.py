@@ -17,7 +17,7 @@ def generate_anchors(base_size, ratios, scales):
     :param base_size: anchor的base_size,如：128
     :param ratios: 长宽比 shape:(M,),如：[0.5,1,2]
     :param scales: 缩放比 shape:(N,),如：[1,2,4]
-    :return: （N*M,(y1,x1,y2,x2))
+    :return: （N*M,(x1,y1,x2,y2))
     """
     ratios = np.expand_dims(np.array(ratios), axis=1)  # (N,1)
     scales = np.expand_dims(np.array(scales), axis=0)  # (1,M)
@@ -28,7 +28,7 @@ def generate_anchors(base_size, ratios, scales):
     h = np.reshape(h, (-1, 1))
     w = np.reshape(w, (-1, 1))
 
-    return np.hstack([-0.5 * h, -0.5 * w, 0.5 * h, 0.5 * w])
+    return np.hstack([-0.5 * w, -0.5 * h, 0.5 * w, 0.5 * h])
 
 
 def shift(base_anchors, shift_shape, strides):
