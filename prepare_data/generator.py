@@ -16,7 +16,7 @@ layer_strides = np.array([4, 8, 16, 32, 64, 128])
 map_size = np.array([160, 80, 40, 20, 10, 5])
 e_scale = np.array([16, 32, 64, 128, 256, 512])
 o_scale = (e_scale / 2).astype('int')
-ratio = 1 / 1.5
+ratio = 1.5
 
 
 def image_reader(test_set):
@@ -33,7 +33,7 @@ def augment(image, gts, labels, test_set):
     sub_img, gt_in_crop, sparse_label = to_aug(image, gts, labels)
     if len(gt_in_crop) == 0:
         image, gts, labels = image_reader(test_set)
-        augment(image, gts, labels, test_set)
+        sub_img, gt_in_crop, sparse_label = augment(image, gts, labels, test_set)
     return sub_img, gt_in_crop, sparse_label
 
 
