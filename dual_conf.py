@@ -22,7 +22,7 @@ class Config(object):
     iou_thread = 0.4
 
     lr = 0.001
-    weight_decay = 0.00001
+    weight_decay = 0.0005
     base_net='resnet50'  # can be 'resnet50','resnet101'
 
     continue_training = True

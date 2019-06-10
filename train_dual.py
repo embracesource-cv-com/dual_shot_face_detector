@@ -12,7 +12,7 @@ from net.dual_shot import train_net
 import keras
 from keras import Model, Input
 from keras.callbacks import TensorBoard, ReduceLROnPlateau, ModelCheckpoint, EarlyStopping
-from keras.optimizers import Adam
+from keras.optimizers import SGD
 import os
 
 os.environ["CUDA_VISIBLE_DEVICES"] = conf.gpu_index
@@ -44,7 +44,7 @@ if conf.continue_training:
     print('loading trained weights from..', conf.weights_to_transfer)
     model.load_weights(conf.weights_to_transfer, by_name=True)
 
-model.compile(optimizer=Adam(lr=conf.lr, decay=conf.weight_decay), loss=None)
+model.compile(optimizer=SGD(lr=conf.lr, decay=conf.weight_decay,momentum=0.9), loss=None)
 model.fit_generator(generator=gen,
                     validation_steps=2,
                     steps_per_epoch=conf.steps_per_epoch,
