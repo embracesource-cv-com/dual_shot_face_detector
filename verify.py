@@ -48,12 +48,12 @@ def bbox_vote(det):
             dets = np.row_stack((dets, det_accu_sum))
         except:
             dets = det_accu_sum
-    dets = dets[dets[:, -1] > 0.7]  # ignore boxes with scores lower than 0.7
+    dets = dets[dets[:, -1] > 0.5]  # ignore boxes with scores lower than 0.5
     dets = dets[0:750, :]
     return dets
 
 
-def eval_model(score_thread=None):
+def eval_model():
     # load model
     weight_path = os.path.join(conf.output_dir, 'weights.h5')
     print('loading trained model from:', weight_path)
