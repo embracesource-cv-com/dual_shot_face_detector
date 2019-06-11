@@ -52,7 +52,7 @@ def bbox_vote(det):
     return dets
 
 
-def eval_model():
+def eval_model(score_thread=None):
     # load model
     weight_path = os.path.join(conf.output_dir, 'weights.h5')
     print('loading trained model from:', weight_path)
@@ -65,12 +65,10 @@ def eval_model():
     # load data
     gen = gen_test(conf.batch_size, 'train')
     x_val, y_val = next(gen)
-    print(x_val.shape, y_val)
 
     # make prediction
     ss_cls, ss_regr = model.predict(x_val)
     ss_cls = np.exp(ss_cls) / np.sum(np.exp(ss_cls), axis=0)
-    print(ss_cls.shape, ss_regr.shape)
 
     # initialize anchors
     e_anchors = init_anchors(layer_strides, map_size, ratio, e_scale)
@@ -87,20 +85,21 @@ def eval_model():
     pred_box = pred_box[np.arange(pred_box.shape[0])[:, None], sort_inds]
     pred_score = pred_score[:, :5000]
     pred_box = pred_box[:, :5000]
-    print(pred_score.shape, pred_box.shape)
 
     # nms
     final_boxes = []
     for i in range(len(pred_score)):
         box_and_score = np.concatenate([pred_box[i], np.expand_dims(pred_score[i], 1)], axis=1)
         final_box = bbox_vote(box_and_score)
+        final_box = final_box[final_box[:, -1] > 0.7]  # ignore boxes with scores lower than 0.7
         final_boxes.append(final_box)
     return final_boxes, x_val, y_val
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     import matplotlib.pyplot as plt
     import matplotlib.patches as patches
+    import uuid
 
 
     def plot_anchor(img_array, anchor_list):
@@ -111,10 +110,13 @@ if __name__=='__main__':
             y1, x1, y2, x2 = [int(i) for i in a]
             rect = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=1, edgecolor='r', facecolor='none')
             ax.add_patch(rect)
-        plt.show()
+        # plt.show()
+        path = os.path.join(conf.output_dir, 'pred_img', str(uuid.uuid1()) + ".jpg")
+        plt.savefig(path)
+
 
     final_boxes, x_val, y_val = eval_model()
     for i in range(len(x_val)):
         img_array = x_val[i]
-        anchor_list = final_boxes[i][:20, :4]  # visualize top 20 boxes
+        anchor_list = final_boxes[i][, :4]
         plot_anchor(img_array, anchor_list)
