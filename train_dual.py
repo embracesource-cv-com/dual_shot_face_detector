@@ -38,14 +38,14 @@ callback = [log, lr_decay, ckpt_saver]
 
 gen = gen_data(conf.batch_size, 'train')
 print([i.shape for i in next(gen)[0]])
-num_anchor = conf.num_train_anchor
+num_anchor = conf.num_anchor
 x_in = Input([conf.net_in_size, conf.net_in_size, 3], name='image_array')
-y_e_reg = Input((num_anchor, 5), name='e_reg')
-y_e_ind = Input((num_anchor, 2), name='e_train_ind')
-y_o_reg = Input((num_anchor, 5), name='o_reg')
-y_o_ind = Input((num_anchor, 2), name='o_train_ind')
-fs_cls, fs_regr, ss_cls, ss_regr, pal = train_net(x_in, y_e_reg, y_e_ind, y_o_reg, y_o_ind)
-model = Model(inputs=[x_in, y_e_reg, y_e_ind, y_o_reg, y_o_ind], outputs=[fs_cls, fs_regr, ss_cls, ss_regr, pal])
+y_e_reg = Input((num_anchor, 4), name='y_e_reg')
+y_e_cls = Input((num_anchor,), name='y_e_cls')
+y_o_reg = Input((num_anchor, 4), name='y_o_reg')
+y_o_cls = Input((num_anchor,), name='y_o_cls')
+fs_cls, fs_regr, ss_cls, ss_regr, pal = train_net(x_in, y_e_reg, y_e_cls, y_o_reg, y_o_cls)
+model = Model(inputs=[x_in, y_e_reg, y_e_cls, y_o_reg, y_o_cls], outputs=[fs_cls, fs_regr, ss_cls, ss_regr, pal])
 
 loss_name = 'PAL'
 layer = model.get_layer(loss_name)

@@ -18,7 +18,7 @@ print('using:', base_net, 'as the base model')
 
 
 def classifier(x, name):
-    cls = KL.Conv2D(conf.num_class, (1, 1), activation='softmax', padding='same', name='cls_' + name)(x)
+    cls = KL.Conv2D(conf.num_class, (1, 1), padding='same', name='cls_' + name)(x)
     regr = KL.Conv2D(4, (1, 1), activation='linear', padding='same', name='regr_' + name)(x)
     cls = KL.Reshape((-1, conf.num_class), name='reshape_cls_' + name)(cls)
     regr = KL.Reshape((-1, 4), name='reshape_regr_' + name)(regr)
@@ -70,7 +70,7 @@ def feature_enhance_module(conv3_3, conv4_3, conv5_3, conv_fc7, conv6_2, conv7_2
     return conv3_3_ef, conv4_3_ef, conv5_3_ef, conv_fc7_ef, conv6_2_ef, conv7_2_ef
 
 
-def train_net(x_in, y_e_reg, y_e_ind, y_o_reg, y_o_ind):
+def train_net(x_in, y_e_reg, y_e_cls, y_o_reg, y_o_cls):
     conv3_3, conv4_3, conv5_3, conv_fc7, conv6_2, conv7_2 = extend_resnet(x_in, base_net)
     # first shot
     fs_cls, fs_regr = detector(conv3_3, conv4_3, conv5_3, conv_fc7, conv6_2, conv7_2, 'fs')
@@ -78,7 +78,7 @@ def train_net(x_in, y_e_reg, y_e_ind, y_o_reg, y_o_ind):
     conv3_3_ef, conv4_3_ef, conv5_3_ef, conv_fc7_ef, conv6_2_ef, conv7_2_ef \
         = feature_enhance_module(conv3_3, conv4_3, conv5_3, conv_fc7, conv6_2, conv7_2)
     ss_cls, ss_regr = detector(conv3_3_ef, conv4_3_ef, conv5_3_ef, conv_fc7_ef, conv6_2_ef, conv7_2_ef, 'ss')
-    pal = keras.layers.Lambda(lambda x: progressive_anchor_loss(*x), name='PAL')([y_e_reg, y_e_ind, y_o_reg, y_o_ind,
+    pal = keras.layers.Lambda(lambda x: progressive_anchor_loss(*x), name='PAL')([y_e_reg, y_e_cls, y_o_reg, y_o_cls,
                                                                                   fs_cls, fs_regr, ss_cls, ss_regr])
     return fs_cls, fs_regr, ss_cls, ss_regr, pal
 
@@ -94,12 +94,12 @@ def test_net(x_in):
 
 def net_test():
     net_in = KL.Input([640, 640, 3], name='image_array')
-    y_e_reg = KL.Input((34125, 5), name='e_reg')
-    y_e_ind = KL.Input((34125, 2), name='e_train_ind')
-    y_o_reg = KL.Input((34125, 5), name='o_reg')
-    y_o_ind = KL.Input((34125, 2), name='o_train_reg')
-    fs_cls, fs_regr, ss_cls, ss_regr, pal = train_net(net_in, y_e_reg, y_e_ind, y_o_reg, y_o_ind)
-    model = Model(inputs=[net_in, y_e_reg, y_e_ind, y_o_reg, y_o_ind], outputs=[fs_cls, fs_regr, ss_cls, ss_regr, pal])
+    y_e_reg = KL.Input((34125, 4), name='e_reg')
+    y_e_cls = KL.Input((34125,), name='e_train_cls')
+    y_o_reg = KL.Input((34125, 4), name='o_reg')
+    y_o_cls = KL.Input((34125,), name='o_train_cls')
+    fs_cls, fs_regr, ss_cls, ss_regr, pal = train_net(net_in, y_e_reg, y_e_cls, y_o_reg, y_o_cls)
+    model = Model(inputs=[net_in, y_e_reg, y_e_cls, y_o_reg, y_o_cls], outputs=[fs_cls, fs_regr, ss_cls, ss_regr, pal])
     model.summary()
     # from keras.utils import plot_model
     # plot_model(model, to_file='model.png', show_shapes=True, show_layer_names=False)

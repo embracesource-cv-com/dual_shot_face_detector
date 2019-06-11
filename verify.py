@@ -9,7 +9,7 @@
 import keras.layers as KL
 from keras import Model
 from dual_conf import current_config as conf
-from vgg_ssd import test_net
+from net.dual_shot import test_net
 from prepare_data.generator import gen_test
 import os
 from prepare_data.model_target import apply_regress
