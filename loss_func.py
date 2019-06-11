@@ -17,7 +17,6 @@ def cls_loss(cls_target, predict_logits):
     :return: classification loss of training anchors
     """
     # remove un-trained anchors from cls_target
-    print(cls_target)
     train_indices = tf.where(tf.not_equal(cls_target, 0))
     cls_target = tf.gather_nd(cls_target, train_indices)
 
@@ -27,7 +26,6 @@ def cls_loss(cls_target, predict_logits):
     cls_target = tf.one_hot(cls_target, depth=2)
 
     # remove un-trained anchors from pred logit
-    print(predict_logits,train_indices)
     logit0 = tf.gather_nd(predict_logits[..., 0], train_indices)
     logit1 = tf.gather_nd(predict_logits[..., 1], train_indices)
     logit = tf.stack([logit0, logit1], axis=1)
@@ -69,3 +67,5 @@ def progressive_anchor_loss(e_reg_targets, e_cls_targets, o_reg_targets, o_cls_t
     # ss_regr_loss = K.print_tensor(ss_regr_loss, message='ss_regr_loss = ')
     # total_loss = K.print_tensor(total_loss, message='total_loss = ')
     return total_loss
+
+
