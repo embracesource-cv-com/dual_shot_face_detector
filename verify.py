@@ -14,6 +14,9 @@ from net.dual_shot import test_net
 from prepare_data.generator import gen_test, layer_strides, map_size, e_scale, ratio
 import os
 from prepare_data.model_target import apply_regress, init_anchors
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+import uuid
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
@@ -96,27 +99,24 @@ def eval_model():
     return final_boxes, x_val, y_val
 
 
-if __name__ == '__main__':
-    import matplotlib.pyplot as plt
-    import matplotlib.patches as patches
-    import uuid
+def plot_anchor(img_array, anchor_list):
+    fig = plt.figure(figsize=(10, 10))
+    ax = fig.add_subplot(1, 1, 1)
+    ax.imshow(img_array.astype(int))
+    for a in anchor_list:
+        y1, x1, y2, x2 = [int(i) for i in a]
+        rect = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=1, edgecolor='r', facecolor='none')
+        ax.add_patch(rect)
+    # plt.show()
+    path = os.path.join(conf.output_dir, 'pred_img', str(uuid.uuid1()) + ".jpg")
+    plt.savefig(path)
 
 
-    def plot_anchor(img_array, anchor_list):
-        fig = plt.figure(figsize=(10, 10))
-        ax = fig.add_subplot(1, 1, 1)
-        ax.imshow(img_array.astype(int))
-        for a in anchor_list:
-            y1, x1, y2, x2 = [int(i) for i in a]
-            rect = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=1, edgecolor='r', facecolor='none')
-            ax.add_patch(rect)
-        # plt.show()
-        path = os.path.join(conf.output_dir, 'pred_img', str(uuid.uuid1()) + ".jpg")
-        plt.savefig(path)
-
-
+def save_img_result():
     final_boxes, x_val, y_val = eval_model()
     for i in range(len(x_val)):
-        img_array = x_val[i]
-        anchor_list = final_boxes[i][, :4]
-        plot_anchor(img_array, anchor_list)
+        plot_anchor(x_val[i], final_boxes[i][, :4])
+
+
+if __name__ == '__main__':
+    save_img_result()
