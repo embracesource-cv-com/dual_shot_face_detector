@@ -48,6 +48,7 @@ def bbox_vote(det):
             dets = np.row_stack((dets, det_accu_sum))
         except:
             dets = det_accu_sum
+    dets = dets[dets[:, -1] > 0.7]  # ignore boxes with scores lower than 0.7
     dets = dets[0:750, :]
     return dets
 
@@ -91,7 +92,6 @@ def eval_model(score_thread=None):
     for i in range(len(pred_score)):
         box_and_score = np.concatenate([pred_box[i], np.expand_dims(pred_score[i], 1)], axis=1)
         final_box = bbox_vote(box_and_score)
-        final_box = final_box[final_box[:, -1] > 0.7]  # ignore boxes with scores lower than 0.7
         final_boxes.append(final_box)
     return final_boxes, x_val, y_val
 
