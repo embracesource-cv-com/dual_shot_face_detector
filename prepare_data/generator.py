@@ -44,27 +44,28 @@ def gen_data(batch_size, phase='train'):
     while True:
         batch_img = []
         batch_gt = []
-        e_reg_targets, e_ind_trains = [], []
-        o_reg_targets, o_ind_trains = [], []
+        e_reg_targets, e_cls_targets = [], []
+        o_reg_targets, o_cls_targets = [], []
         for i in range(batch_size):
             image, gts, labels = image_reader(test_set)
             sub_img, gt_in_crop, sparse_label = augment(image, gts, labels, test_set)
             # print('num_gt:', len(gt_in_crop))
-            e_reg_target, e_ind_train = cal_target(gt_in_crop, e_anchors, iou_thread=conf.iou_thread,
-                                                   train_anchors=conf.num_train_anchor)
-            o_reg_target, o_ind_train = cal_target(gt_in_crop, o_anchors, iou_thread=conf.iou_thread,
-                                                   train_anchors=conf.num_train_anchor)
+            gt_in_crop = gt_in_crop[:, np.array([1, 0, 3, 2])]  # change x1,y1,x2,y2 to y1,x1,y2,x2
+            e_reg_target, e_cls_target = cal_target(gt_in_crop, e_anchors, iou_thread=conf.iou_thread,
+                                                    train_anchors=conf.num_train_anchor)
+            o_reg_target, o_cls_target = cal_target(gt_in_crop, o_anchors, iou_thread=conf.iou_thread,
+                                                    train_anchors=conf.num_train_anchor)
             e_reg_targets.append(e_reg_target)
-            e_ind_trains.append(e_ind_train)
+            e_cls_targets.append(e_cls_target)
             o_reg_targets.append(o_reg_target)
-            o_ind_trains.append(o_ind_train)
+            o_cls_targets.append(o_cls_target)
             batch_img.append(sub_img)
             batch_gt.append(gt_in_crop)
 
-        e_reg_targets, e_ind_trains = [np.array(i) for i in [e_reg_targets, e_ind_trains]]
-        o_reg_targets, o_ind_trains = [np.array(i) for i in [o_reg_targets, o_ind_trains]]
+        e_reg_targets, e_cls_targets = [np.array(i) for i in [e_reg_targets, e_cls_targets]]
+        o_reg_targets, o_cls_targets = [np.array(i) for i in [o_reg_targets, o_cls_targets]]
         batch_img = np.array(batch_img)
-        yield [batch_img, e_reg_targets, e_ind_trains, o_reg_targets, o_ind_trains], []
+        yield [batch_img, e_reg_targets, e_cls_targets, o_reg_targets, o_cls_targets], []
 
 
 def gen_test(batch_size, phase='train'):
@@ -80,4 +81,3 @@ def gen_test(batch_size, phase='train'):
         batch_img = np.array(batch_img)
         batch_gt = np.array(batch_gt)
         yield batch_img, batch_gt
-
