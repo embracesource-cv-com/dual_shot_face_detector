@@ -122,7 +122,7 @@ class WIDERFaceDetection(Sequence):
                     ymax = float(face_bbx[i][3]) + ymin - 1
                     bboxes.append([xmin, ymin, xmax, ymax])
 
-                if (len(bboxes) == 0):  # filter bbox will make bbox none
+                if len(bboxes) == 0:  # filter bbox will make bbox none
                     continue
                 self.img_ids.append(osp.join(self.path_to_image, directory, im_name + '.jpg'))
                 self.event_ids.append(directory)
