@@ -138,11 +138,17 @@ class WIDERFaceDetection(Sequence):
     def __len__(self):
         return len(self.img_ids)
 
+    def pull_image_name(self, index):
+        return self.img_ids[index]
+
+    def pull_all_event(self):
+        return list(set(self.event_ids))
+
     def pull_item(self, index):
 
         boxes = np.array(self.label_ids[index])
         img = cv2.imread(self.img_ids[index])
-        labels = np.full(boxes.shape[0], 0)
+        labels = np.full(boxes.shape[0], 1)
         height, width, channels = img.shape
         if self.target_transform is not None:
             boxes = self.target_transform(boxes, width, height)
@@ -150,6 +156,8 @@ class WIDERFaceDetection(Sequence):
         if self.transform is not None:
             img, boxes, labels = self.transform(img, boxes, labels)
         return img, boxes, labels
+
+
 
 
 if __name__ == '__main__':
