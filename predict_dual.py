@@ -8,16 +8,16 @@
 """
 
 import numpy as np
+import os
+from tqdm import tqdm
+from prepare_data.model_target import apply_regress, init_anchors
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 import keras.layers as KL
 from keras import Model
 from dual_conf import current_config as conf
 from net.dual_shot import test_net
 from prepare_data.generator import layer_strides, map_size, e_scale, ratio
-import os
-from prepare_data.model_target import apply_regress, init_anchors
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-import uuid
 from prepare_data.widerface import WIDERFaceDetection
 from prepare_data.augment import Resize
 
@@ -77,7 +77,7 @@ def bbox_vote(det):
         except:
             dets = det_accu_sum
     dets = dets[dets[:, -1] > 0.5]  # ignore boxes with scores lower than 0.5
-    dets = dets[0:750, :4]
+    dets = dets[0:750, :]
     return dets
 
 
@@ -99,13 +99,12 @@ def eval_widerface():
     model = load_model()
     e_anchors = init_anchors(layer_strides, map_size, ratio, e_scale)
 
-    for index in range(len(test_set)):
+    for index in tqdm(range(len(test_set))):
         image, gts, labels = test_set.pull_item(index)
         to_resize = Resize(conf.net_in_size)
         image, gts, labels = to_resize(image, gts, labels)
         plot_img = image.copy()
         image = np.expand_dims(image, 0)
-
 
         # make prediction
         ss_cls, ss_regr = model.predict(image)
@@ -126,16 +125,22 @@ def eval_widerface():
         # nms
         box_and_score = np.concatenate([pred_box, np.expand_dims(pred_score, 1)], axis=1)
         pred_box = bbox_vote(box_and_score)
-        pred_label = np.full_like(pred_score, 1)
 
+        pred_score = pred_box[:, -1]
+        pred_label = np.full_like(pred_score, 1)
+        pred_box = pred_box[:, :4]
+        print(pred_score.shape, pred_label.shape, pred_box.shape)
+
+        # save result
         img_path = test_set.pull_image_name(index)
         img_name = os.path.split(img_path)[-1]
         save_path = os.path.join(conf.output_dir, 'widerface_val_result', '{}.npz'.format(img_name))
         np.savez(save_path, gt_boxes=gts, gt_labels=labels,
-                 pred_boxes=pred_box, pred_labels=pred_label,pred_scores=pred_score)
-        save_path = os.path.join(conf.output_dir, 'widerface_val_result',img_name)
-        plot_anchor(plot_img, pred_box, save_path)
+                 pred_boxes=pred_box, pred_labels=pred_label, pred_scores=pred_score)
         print('[INFO] {}.npz saved...'.format(img_name))
+
+        save_path = os.path.join(conf.output_dir, 'widerface_val_result', img_name)
+        plot_anchor(plot_img, pred_box, save_path)
 
     print('[INFO] Test finished!')
 
