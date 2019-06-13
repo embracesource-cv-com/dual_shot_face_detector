@@ -168,12 +168,11 @@ def apply_regress(deltas, anchors):
     return np.stack([y1, x1, y2, x2], axis=1)
 
 
-def cal_target(gts=None, anchors=None, iou_thread=0.4, train_anchors=10):
+def cal_target(gts=None, anchors=None, iou_thread=0.4):
     """ calculate target for 1 sample
     :param gts: 2-D array [num_gt,(y1,x1,y2,x2)]
     :param anchors: 2-D array, all initialized anchors [num_anchor,(y1,x1,y2,x2)]
     :param iou_thread: decimal,thread for positive anchor
-    :param train_anchors: int, num of anchors to calculate loss, not necessary in one stage detector
     :return:
     reg_target: 2-D array, [num_anchor,(dy,dx,dh,dw)]
     cls_target:2-D array, [num_anchor], 1,-1,0 for pos,neg and un-train anchors respectively

@@ -101,11 +101,11 @@ class WIDERFaceDetection(Sequence):
             for im_idx, im in enumerate(self.file_list[event_idx][0]):
                 im_name = im[0][0]
 
-                if self.image_set in ['test', 'val']:
-                    self.img_ids.append(osp.join(self.path_to_image, directory, im_name + '.jpg'))
-                    self.event_ids.append(directory)
-                    self.label_ids.append([])
-                    continue
+                # if self.image_set in ['test', 'val']:
+                #     self.img_ids.append(osp.join(self.path_to_image, directory, im_name + '.jpg'))
+                #     self.event_ids.append(directory)
+                #     self.label_ids.append([])
+                #     continue
 
                 face_bbx = self.face_bbx_list[event_idx][0][im_idx][0]
                 bboxes = []
@@ -145,7 +145,6 @@ class WIDERFaceDetection(Sequence):
         return list(set(self.event_ids))
 
     def pull_item(self, index):
-
         boxes = np.array(self.label_ids[index])
         img = cv2.imread(self.img_ids[index])
         labels = np.full(boxes.shape[0], 1)
