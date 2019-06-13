@@ -173,7 +173,7 @@ def cal_target(gts=None, anchors=None, iou_thread=0.4, train_anchors=10):
     :param gts: 2-D array [num_gt,(y1,x1,y2,x2)]
     :param anchors: 2-D array, all initialized anchors [num_anchor,(y1,x1,y2,x2)]
     :param iou_thread: decimal,thread for positive anchor
-    :param train_anchors: int, num of anchors to calculate loss
+    :param train_anchors: int, num of anchors to calculate loss, not necessary in one stage detector
     :return:
     reg_target: 2-D array, [num_anchor,(dy,dx,dh,dw)]
     cls_target:2-D array, [num_anchor], 1,-1,0 for pos,neg and un-train anchors respectively
@@ -203,8 +203,8 @@ def cal_target(gts=None, anchors=None, iou_thread=0.4, train_anchors=10):
     # randomly select positive anchors
     pos_ind = np.where(np.not_equal(anchor_cls, 0))[0]
     seed = np.random.randint(0, 1000, 1)[0]
-    pos_ind_chose = shuffle(pos_ind, random_state=seed)[0:train_anchors // 2]
-    neg_ind_chose = shuffle(neg_ind, random_state=seed)[0:train_anchors // 2]
+    pos_ind_chose = shuffle(pos_ind, random_state=seed)
+    neg_ind_chose = shuffle(neg_ind, random_state=seed)[:len(pos_ind_chose)]
 
     # cls_target for all anchors
     cls_target = np.full(shape=[conf.num_anchor], fill_value=0)
