@@ -20,7 +20,7 @@ ratio = 1.5
 
 
 def image_reader(test_set):
-    index = np.random.randint(0, conf.num_image, 1)[0]
+    index = np.random.randint(0, len(test_set), 1)[0]
     # print('batch_index:', index)
     image, gts, labels = test_set.pull_item(index)
     if len(gts) == 0:
@@ -68,7 +68,7 @@ def gen_data(batch_size, phase='train'):
         yield [batch_img, e_reg_targets, e_cls_targets, o_reg_targets, o_cls_targets], []
 
 
-def gen_test(batch_size, phase='train'):
+def gen_test(batch_size, phase='val'):
     test_set = WIDERFaceDetection(conf.data_path, phase, None, None)
     while True:
         batch_img = []
@@ -81,3 +81,17 @@ def gen_test(batch_size, phase='train'):
         batch_img = np.array(batch_img)
         batch_gt = np.array(batch_gt)
         yield batch_img, batch_gt
+
+
+def load_dataset(phase='val'):
+    test_set = WIDERFaceDetection(conf.data_path, phase, None, None)
+    batch_img = []
+    batch_gt = []
+    for i in range(len(test_set)):
+        image, gts, labels = image_reader(test_set)
+        sub_img, gt_in_crop, sparse_label = augment(image, gts, labels, test_set)
+        batch_img.append(sub_img)
+        batch_gt.append(gt_in_crop)
+    batch_img = np.array(batch_img)
+    batch_gt = np.array(batch_gt)
+    return batch_img, batch_gt
