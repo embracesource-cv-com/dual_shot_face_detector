@@ -18,8 +18,7 @@ class Config(object):
     epochs = 20
     steps_per_epoch = 3000  # 约3000/epoch
     gpu_index = "1"
-    num_train_anchor = 128
-    iou_thread = 0.4
+    iou_thread = 0.4  # thread to select positive anchor
 
     lr = 0.001
     weight_decay = 0.0005

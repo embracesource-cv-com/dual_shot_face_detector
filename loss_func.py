@@ -46,7 +46,6 @@ def regr_loss(reg_target, predict_deltas, cls_target):
     pos_indice = tf.where(tf.equal(cls_target, 1))
     reg_target = tf.gather_nd(reg_target, pos_indice)
     pred_deltas = tf.gather_nd(predict_deltas, pos_indice)
-    print(reg_target,pred_deltas)
     diff = tf.abs(reg_target - pred_deltas)
     smooth_loss = tf.where(diff < 1, tf.pow(diff, 2) * 0.5, diff - 0.5)
     loss = K.mean(smooth_loss)
@@ -59,13 +58,14 @@ def progressive_anchor_loss(e_reg_targets, e_cls_targets, o_reg_targets, o_cls_t
     ss_cls_loss = cls_loss(e_cls_targets, ss_cls)
     fs_regr_loss = regr_loss(o_reg_targets, fs_regr, o_cls_targets)
     ss_regr_loss = regr_loss(e_reg_targets, ss_regr, e_cls_targets)
-    total_loss = fs_cls_loss + ss_cls_loss + fs_regr_loss + ss_regr_loss
 
-    # fs_cls_loss = K.print_tensor(fs_cls_loss, message='fs_cls_loss = ')
-    # ss_cls_loss = K.print_tensor(ss_cls_loss, message='ss_cls_loss = ')
-    # fs_regr_loss = K.print_tensor(fs_regr_loss, message='fs_regr_loss = ')
-    # ss_regr_loss = K.print_tensor(ss_regr_loss, message='ss_regr_loss = ')
-    # total_loss = K.print_tensor(total_loss, message='total_loss = ')
+    fs_cls_loss = K.print_tensor(fs_cls_loss, message='fs_cls_loss = ')
+    ss_cls_loss = K.print_tensor(ss_cls_loss, message='ss_cls_loss = ')
+    fs_regr_loss = K.print_tensor(fs_regr_loss, message='fs_regr_loss = ')
+    ss_regr_loss = K.print_tensor(ss_regr_loss, message='ss_regr_loss = ')
+
+    total_loss = fs_cls_loss + ss_cls_loss + fs_regr_loss + ss_regr_loss
+    total_loss = K.print_tensor(total_loss, message='total_loss = ')
     return total_loss
 
 
