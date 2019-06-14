@@ -168,11 +168,12 @@ def apply_regress(deltas, anchors):
     return np.stack([y1, x1, y2, x2], axis=1)
 
 
-def cal_target(gts=None, anchors=None, iou_thread=0.4):
+def cal_target(gts=None, anchors=None, iou_thread=0.4, min_num_neg=100):
     """ calculate target for 1 sample
     :param gts: 2-D array [num_gt,(y1,x1,y2,x2)]
     :param anchors: 2-D array, all initialized anchors [num_anchor,(y1,x1,y2,x2)]
     :param iou_thread: decimal,thread for positive anchor
+    :param min_num_neg: int, minimum number of negative anchors
     :return:
     reg_target: 2-D array, [num_anchor,(dy,dx,dh,dw)]
     cls_target:2-D array, [num_anchor], 1,-1,0 for pos,neg and un-train anchors respectively
@@ -196,14 +197,18 @@ def cal_target(gts=None, anchors=None, iou_thread=0.4):
     bad_ind = np.where(np.equal(anchor_cls, 0))[0]
     bad_iou = iou[:, bad_ind]
     bad_iou = np.max(bad_iou, axis=0)
-    bad_neg_ind = np.where(np.greater(0.3, bad_iou) * np.greater(bad_iou, 0))[0]
+    # bad_neg_ind = np.where(np.greater(0.3, bad_iou) * np.greater(bad_iou, 0))[0]
+    bad_neg_ind = np.where(np.greater(0.3, bad_iou))[0]
     neg_ind = bad_ind[bad_neg_ind]
 
     # randomly select positive anchors
     pos_ind = np.where(np.not_equal(anchor_cls, 0))[0]
     seed = np.random.randint(0, 1000, 1)[0]
     pos_ind_chose = shuffle(pos_ind, random_state=seed)
-    neg_ind_chose = shuffle(neg_ind, random_state=seed)[:len(pos_ind_chose)]
+    if len(pos_ind_chose)*2 > min_num_neg:
+        neg_ind_chose = shuffle(neg_ind, random_state=seed)[:(len(pos_ind_chose))*2]
+    else:
+        neg_ind_chose = shuffle(neg_ind, random_state=seed)[:min_num_neg]
 
     # cls_target for all anchors
     cls_target = np.full(shape=[conf.num_anchor], fill_value=0)

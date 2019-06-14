@@ -51,8 +51,8 @@ def gen_data(batch_size, phase='train'):
             sub_img, gt_in_crop, sparse_label = augment(image, gts, labels, test_set)
             # print('num_gt:', len(gt_in_crop))
             gt_in_crop = gt_in_crop[:, np.array([1, 0, 3, 2])]  # change x1,y1,x2,y2 to y1,x1,y2,x2
-            e_reg_target, e_cls_target = cal_target(gt_in_crop, e_anchors, iou_thread=conf.iou_thread)
-            o_reg_target, o_cls_target = cal_target(gt_in_crop, o_anchors, iou_thread=conf.iou_thread)
+            e_reg_target, e_cls_target = cal_target(gt_in_crop, e_anchors, conf.iou_thread, 100)
+            o_reg_target, o_cls_target = cal_target(gt_in_crop, o_anchors, conf.iou_thread, 100)
             e_reg_targets.append(e_reg_target)
             e_cls_targets.append(e_cls_target)
             o_reg_targets.append(o_reg_target)
