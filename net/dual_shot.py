@@ -69,7 +69,6 @@ def feature_enhance_module(conv3_3, conv4_3, conv5_3, conv_fc7, conv6_2, conv7_2
     conv7_2_ef = conv7_2
     return conv3_3_ef, conv4_3_ef, conv5_3_ef, conv_fc7_ef, conv6_2_ef, conv7_2_ef
 
-
 def train_net(x_in, y_e_reg, y_e_cls, y_o_reg, y_o_cls):
     conv3_3, conv4_3, conv5_3, conv_fc7, conv6_2, conv7_2 = extend_resnet(x_in, base_net)
     # first shot

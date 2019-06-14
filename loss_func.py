@@ -35,7 +35,7 @@ def hard_neg_mining(cls_target, predict_logits):
     """
     loss_to_rank = log_sum_exp(cls_target, predict_logits)
     loss_to_rank = cls_target[:, 0] * loss_to_rank  # set loss for pos anchor to 0
-    _, neg_ind = tf.nn.top_k(loss_to_rank, 2)
+    _, neg_ind = tf.nn.top_k(loss_to_rank, 80)
     pos_ind = tf.squeeze(tf.where(cls_target[:, 1] >= 1))
     pos_ind = tf.cast(pos_ind, tf.int64)
     neg_ind = tf.cast(neg_ind, tf.int64)

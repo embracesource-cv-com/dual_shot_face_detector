@@ -139,9 +139,8 @@ def main():
     score_thread = 0.8
     saved_file_path = os.path.join(conf.output_dir, 'widerface_val_result')
     gt_boxes, gt_labels, pred_boxes, pred_labels, pred_scores = load_predicted_file(saved_file_path)
-    print(len(pred_boxes), pred_boxes[0].shape, pred_labels[0].shape, pred_scores[0].shape)
+    print('number of val images:', len(gt_boxes))
     pred_boxes, pred_labels, pred_scores = filter_by_score(pred_boxes, pred_labels, pred_scores, score_thread)
-    print(len(pred_boxes), pred_boxes[0].shape, pred_labels[0].shape, pred_scores[0].shape)
     pred_boxes, pred_labels, pred_scores = sort_by_score(pred_boxes, pred_labels, pred_scores)
     all_ap = eval_ap_2d(gt_boxes, gt_labels, pred_boxes, pred_labels, pred_scores, iou_thread, conf.num_class)
     print('AP for all cls:', all_ap)
