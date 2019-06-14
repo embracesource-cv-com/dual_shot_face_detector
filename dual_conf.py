@@ -24,6 +24,7 @@ class Config(object):
     weight_decay = 0.0005
     base_net='resnet50'  # can be 'resnet50','resnet101'
 
+    hard_negative_mining = True
     continue_training = True
     weights_to_transfer = '/home/pretrained_model/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
 

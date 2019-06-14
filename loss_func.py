@@ -8,29 +8,70 @@
 
 import tensorflow as tf
 import keras.backend as K
+from dual_conf import current_config as conf
+
+
+def log_sum_exp(cls_target, predict_logits):
+    """un-averaged confidence loss across all examples in a batch.
+    :param cls_target: 2-d tensor,[num_anchors,2 ]; 1,0 for pos,neg anchors respectively
+    :param predict_logits: 2-d tensor,[num_anchors,2] 2 for fg and bg
+    :return: loss,1-D tensor
+    """
+    logit_max = tf.reduce_max(predict_logits)
+    loss = tf.log(tf.reduce_sum(tf.exp(predict_logits - logit_max), 1, keepdims=True)) + logit_max
+    cls_indice = tf.where(cls_target >= 1)
+    anchor_cls_logit = tf.gather_nd(predict_logits, cls_indice)
+    loss = tf.squeeze(loss)
+    loss = loss - anchor_cls_logit
+    return loss
+
+
+def hard_neg_mining(cls_target, predict_logits):
+    """
+    select top 80 negtive anchors the contribute most loss to do the backward pass
+    :param cls_target:2-d tensor,[num_anchors,2 ]; 1,0 for pos,neg anchors respectively
+    :param predict_logits: 2-d tensor,[num_anchors,2] 2 for fg and bg
+    :return:
+    """
+    loss_to_rank = log_sum_exp(cls_target, predict_logits)
+    loss_to_rank = cls_target[:, 0] * loss_to_rank  # set loss for pos anchor to 0
+    _, neg_ind = tf.nn.top_k(loss_to_rank, 2)
+    pos_ind = tf.squeeze(tf.where(cls_target[:, 1] >= 1))
+    pos_ind = tf.cast(pos_ind, tf.int64)
+    neg_ind = tf.cast(neg_ind, tf.int64)
+    all_ind = tf.concat([pos_ind, neg_ind], axis=0)
+    cls_target = tf.gather(cls_target, all_ind)
+    predict_logits = tf.gather(predict_logits, all_ind)
+    return cls_target, predict_logits
 
 
 def cls_loss(cls_target, predict_logits):
     """
     :param cls_target:2-d array,[batch_num,num_anchors]; 1,-1,0 for pos,neg and un-train anchors respectively
-    :param predict_logits: 2-d array,[batch_num,num_anchors] fg or bg
+    :param predict_logits: 3-d array,[batch_num,num_anchors,2] fg or bg
     :return: classification loss of training anchors
     """
-    # remove un-trained anchors from cls_target
+    # remove un-trained anchors from cls_target and make cls_target to one-hot format
     train_indices = tf.where(tf.not_equal(cls_target, 0))
     cls_target = tf.gather_nd(cls_target, train_indices)
-
-    # change negative tag from -1 to 0, and make cls_target to one-hot format
+    # change negative tag from -1 to 0
     cls_target = tf.where(cls_target > 0, cls_target, tf.zeros_like(cls_target))
-    cls_target = tf.cast(cls_target, dtype=tf.int32)
-    cls_target = tf.one_hot(cls_target, depth=2)
+    cls_target = tf.cast(cls_target,tf.int64)
+    cls_target = tf.one_hot(cls_target, depth=conf.num_class)
 
     # remove un-trained anchors from pred logit
     logit0 = tf.gather_nd(predict_logits[..., 0], train_indices)
     logit1 = tf.gather_nd(predict_logits[..., 1], train_indices)
-    logit = tf.stack([logit0, logit1], axis=1)
+    predict_logits = tf.stack([logit0, logit1], axis=1)
+    #predict_logits = tf.cast(predict_logits, dtype=tf.float32)
 
-    loss = tf.nn.softmax_cross_entropy_with_logits_v2(labels=cls_target, logits=logit)
+    # hard negative anchor mining
+    if conf.hard_negative_mining:
+        cls_target, predict_logits = hard_neg_mining(cls_target, predict_logits)
+
+    #  calculate the loss
+    print(cls_target,predict_logits)
+    loss = tf.nn.softmax_cross_entropy_with_logits_v2(labels=cls_target, logits=predict_logits)
     loss = K.mean(loss)
     return loss
 
@@ -59,13 +100,24 @@ def progressive_anchor_loss(e_reg_targets, e_cls_targets, o_reg_targets, o_cls_t
     fs_regr_loss = regr_loss(o_reg_targets, fs_regr, o_cls_targets)
     ss_regr_loss = regr_loss(e_reg_targets, ss_regr, e_cls_targets)
 
-    fs_cls_loss = K.print_tensor(fs_cls_loss, message='fs_cls_loss = ')
-    ss_cls_loss = K.print_tensor(ss_cls_loss, message='ss_cls_loss = ')
-    fs_regr_loss = K.print_tensor(fs_regr_loss, message='fs_regr_loss = ')
-    ss_regr_loss = K.print_tensor(ss_regr_loss, message='ss_regr_loss = ')
+    # fs_cls_loss = K.print_tensor(fs_cls_loss, message='fs_cls_loss = ')
+    # ss_cls_loss = K.print_tensor(ss_cls_loss, message='ss_cls_loss = ')
+    # fs_regr_loss = K.print_tensor(fs_regr_loss, message='fs_regr_loss = ')
+    # ss_regr_loss = K.print_tensor(ss_regr_loss, message='ss_regr_loss = ')
 
     total_loss = fs_cls_loss + ss_cls_loss + fs_regr_loss + ss_regr_loss
-    total_loss = K.print_tensor(total_loss, message='total_loss = ')
+    # total_loss = K.print_tensor(total_loss, message='total_loss = ')
     return total_loss
 
 
+if __name__ == '__main__':
+    import numpy as np
+    cls_target = np.random.randint(-1, 2, [2, 8])
+    predict_logits = np.random.randint(-1, 10, [2, 8, 2])
+    cls_target = tf.constant(cls_target)
+    predict_logits = tf.constant(predict_logits, tf.float64)
+    loss = cls_loss(cls_target, predict_logits)
+    to_run = [loss]
+    sess = tf.Session()
+    for i in to_run:
+        print(i, '\n', sess.run(i))
