@@ -205,10 +205,12 @@ def cal_target(gts=None, anchors=None, iou_thread=0.4, min_num_neg=100):
     pos_ind = np.where(np.not_equal(anchor_cls, 0))[0]
     seed = np.random.randint(0, 1000, 1)[0]
     pos_ind_chose = shuffle(pos_ind, random_state=seed)
-    if len(pos_ind_chose)*2 > min_num_neg:
-        neg_ind_chose = shuffle(neg_ind, random_state=seed)[:(len(pos_ind_chose))*2]
-    else:
-        neg_ind_chose = shuffle(neg_ind, random_state=seed)[:min_num_neg]
+    neg_ind_chose = shuffle(neg_ind, random_state=seed)
+
+    # if len(pos_ind_chose)*3> min_num_neg:
+    #     neg_ind_chose = shuffle(neg_ind, random_state=seed)[:(len(pos_ind_chose))*3]
+    # else:
+    #     neg_ind_chose = shuffle(neg_ind, random_state=seed)[:min_num_neg]
 
     # cls_target for all anchors
     cls_target = np.full(shape=[conf.num_anchor], fill_value=0)

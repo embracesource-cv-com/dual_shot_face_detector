@@ -14,7 +14,7 @@ from keras import Model, Input
 from keras.callbacks import TensorBoard, ReduceLROnPlateau, ModelCheckpoint, LearningRateScheduler
 from keras.optimizers import SGD
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = conf.gpu_index
 
 
 def lr_scheduler(epoch):

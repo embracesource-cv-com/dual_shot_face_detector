@@ -74,6 +74,7 @@ def gen_test(batch_size, phase='val'):
         for i in range(batch_size):
             image, gts, labels = image_reader(test_set)
             sub_img, gt_in_crop, sparse_label = augment(image, gts, labels, test_set)
+            gt_in_crop = gt_in_crop[:, np.array([1, 0, 3, 2])]  # change x1,y1,x2,y2 to y1,x1,y2,x2
             batch_img.append(sub_img)
             batch_gt.append(gt_in_crop)
         batch_img = np.array(batch_img)

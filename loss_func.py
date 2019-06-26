@@ -34,8 +34,10 @@ def hard_neg_mining(cls_target, predict_logits):
     :return:
     """
     loss_to_rank = log_sum_exp(cls_target, predict_logits)
-    loss_to_rank = cls_target[:, 0] * loss_to_rank  # set loss for pos anchor to 0
-    _, neg_ind = tf.nn.top_k(loss_to_rank, 80)
+    loss_to_rank = tf.cast(cls_target[:, 0], tf.float64) * tf.cast(loss_to_rank,
+                                                                   tf.float64)  # set loss for pos anchor to 0
+    neg_num = tf.cast(tf.reduce_sum(cls_target[:, -1]) * 3, tf.int32)
+    _, neg_ind = tf.nn.top_k(loss_to_rank, neg_num)
     pos_ind = tf.squeeze(tf.where(cls_target[:, 1] >= 1))
     pos_ind = tf.cast(pos_ind, tf.int64)
     neg_ind = tf.cast(neg_ind, tf.int64)
@@ -56,21 +58,21 @@ def cls_loss(cls_target, predict_logits):
     cls_target = tf.gather_nd(cls_target, train_indices)
     # change negative tag from -1 to 0
     cls_target = tf.where(cls_target > 0, cls_target, tf.zeros_like(cls_target))
-    cls_target = tf.cast(cls_target,tf.int64)
+    cls_target = tf.cast(cls_target, tf.int64)
     cls_target = tf.one_hot(cls_target, depth=conf.num_class)
 
     # remove un-trained anchors from pred logit
     logit0 = tf.gather_nd(predict_logits[..., 0], train_indices)
     logit1 = tf.gather_nd(predict_logits[..., 1], train_indices)
     predict_logits = tf.stack([logit0, logit1], axis=1)
-    #predict_logits = tf.cast(predict_logits, dtype=tf.float32)
+    # predict_logits = tf.cast(predict_logits, dtype=tf.float32)
 
     # hard negative anchor mining
     if conf.hard_negative_mining:
         cls_target, predict_logits = hard_neg_mining(cls_target, predict_logits)
 
     #  calculate the loss
-    print(cls_target,predict_logits)
+    print(cls_target, predict_logits)
     loss = tf.nn.softmax_cross_entropy_with_logits_v2(labels=cls_target, logits=predict_logits)
     loss = K.mean(loss)
     return loss
@@ -112,6 +114,7 @@ def progressive_anchor_loss(e_reg_targets, e_cls_targets, o_reg_targets, o_cls_t
 
 if __name__ == '__main__':
     import numpy as np
+
     cls_target = np.random.randint(-1, 2, [2, 8])
     predict_logits = np.random.randint(-1, 10, [2, 8, 2])
     cls_target = tf.constant(cls_target)

@@ -125,18 +125,20 @@ def load_predicted_file(saved_file_path):
     files.sort()
     gt_boxes, gt_labels, pred_boxes, pred_labels, pred_scores = [], [], [], [], []
     for file in files:
+        #print(file)
         with np.load(file)as data:
             gt_boxes.append(data['gt_boxes'])
             gt_labels.append(data['gt_labels'])
             pred_boxes.append(data['pred_boxes'])
             pred_labels.append(data['pred_labels'])
             pred_scores.append(data['pred_scores'])
+            #print(gt_boxes,pred_boxes)
     return gt_boxes, gt_labels, pred_boxes, pred_labels, pred_scores
 
 
 def main():
     iou_thread = 0.5
-    score_thread = 0.8
+    score_thread = 0.5
     saved_file_path = os.path.join(conf.output_dir, 'widerface_val_result')
     gt_boxes, gt_labels, pred_boxes, pred_labels, pred_scores = load_predicted_file(saved_file_path)
     print('number of val images:', len(gt_boxes))
