@@ -15,23 +15,24 @@ def log_sum_exp(cls_target, predict_logits):
     """un-averaged confidence loss across all examples in a batch.
     :param cls_target: 2-d tensor,[num_anchors,2 ]; 1,0 for pos,neg anchors respectively
     :param predict_logits: 2-d tensor,[num_anchors,2] 2 for fg and bg
-    :return: loss,1-D tensor
+    :return: loss,1-D tensor,[num_anchors]
     """
     logit_max = tf.reduce_max(predict_logits)
     loss = tf.log(tf.reduce_sum(tf.exp(predict_logits - logit_max), 1, keepdims=True)) + logit_max
     cls_indice = tf.where(cls_target >= 1)
-    anchor_cls_logit = tf.gather_nd(predict_logits, cls_indice)
+    anchor_cls_logit = tf.gather_nd(predict_logits, cls_indice)  # logit value for positive cls
     loss = tf.squeeze(loss)
     loss = loss - anchor_cls_logit
     return loss
 
 
 def hard_neg_mining(cls_target, predict_logits):
-    """
-    select top 80 negtive anchors the contribute most loss to do the backward pass
+    """select top negtive anchors the contribute most loss to do the backward pass
     :param cls_target:2-d tensor,[num_anchors,2 ]; 1,0 for pos,neg anchors respectively
     :param predict_logits: 2-d tensor,[num_anchors,2] 2 for fg and bg
     :return:
+    cls_target:2-d tensor,[num_seleceted_anchors,2 ]; 1,0 for pos,neg anchors respectively
+    predict_logits: 2-d tensor,[num_seleceted_anchors,2] 2 for fg and bg
     """
     loss_to_rank = log_sum_exp(cls_target, predict_logits)
     loss_to_rank = tf.cast(cls_target[:, 0], tf.float64) * tf.cast(loss_to_rank,

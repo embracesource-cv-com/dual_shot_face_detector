@@ -25,14 +25,11 @@ os.environ['CUDA_VISIBLE_DEVICES'] = conf.gpu_index
 
 
 def adjust_gt(bboxes, width, height, resized_width, resized_height):
-    num_bboxes = bboxes.shape[0]
-    gta = np.zeros((num_bboxes, 4), dtype='int')
-    for bbox_num, bbox in enumerate(bboxes):
-        gta[bbox_num, 0] = bbox[0] * (resized_width / float(width))
-        gta[bbox_num, 1] = bbox[1] * (resized_width / float(width))
-        gta[bbox_num, 2] = bbox[2] * (resized_height / float(height))
-        gta[bbox_num, 3] = bbox[3] * (resized_height / float(height))
-    return gta
+    w_ratio = width / resized_width
+    h_ratio = height / resized_height
+    bboxes[:, [0, 2]] = bboxes[:, [0, 2]] * h_ratio
+    bboxes[:, [1, 3]] = bboxes[:, [1, 3]] * w_ratio
+    return bboxes
 
 
 def softmax(logit):
@@ -112,8 +109,10 @@ def eval_widerface():
 
     for index in tqdm(range(len(test_set))):
         image, gts, labels = test_set.pull_item(index)
-        plot_img = image.copy()
         gts = gts[:, np.array([1, 0, 3, 2])]  # change x1,y1,x2,y2 to y1,x1,y2,x2
+        plot_img = image.copy()
+        origin_width, origin_height = image.shape[1], image.shape[0]
+
         to_resize = Resize(conf.net_in_size)
         image, gts, labels = to_resize(image, gts, labels)
         image = np.expand_dims(image, 0)
@@ -141,7 +140,7 @@ def eval_widerface():
         pred_score = pred_box[:, -1]
         pred_label = np.full_like(pred_score, 1)
         pred_box = pred_box[:, :4]
-        pred_box = adjust_gt(pred_box, plot_img.shape[1], plot_img.shape[0], image.shape[1], image.shape[0])
+        pred_box = adjust_gt(pred_box, origin_width, origin_height, conf.net_in_size, conf.net_in_size)
         print(pred_score.shape, pred_label.shape, pred_box.shape)
 
         # save result
@@ -156,9 +155,6 @@ def eval_widerface():
         plot_anchor(plot_img, pred_box, save_path)
 
     print('[INFO] Test finished!')
-
-
-
 
 
 if __name__ == '__main__':
